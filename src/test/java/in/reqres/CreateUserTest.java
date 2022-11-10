@@ -1,6 +1,11 @@
 package in.reqres;
 
 import com.github.javafaker.Faker;
+import in.reqres.controller.ReqResController;
+import in.reqres.model.UserDto;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.builder.ResponseSpecBuilder;
+import io.restassured.filter.log.LogDetail;
 import io.restassured.http.ContentType;
 
 import io.restassured.specification.RequestSpecification;
@@ -9,49 +14,39 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.requestSpecification;
+import static io.restassured.RestAssured.responseSpecification;
 
 public class CreateUserTest {
+
+    static {
+        requestSpecification = new RequestSpecBuilder().log(LogDetail.ALL).build();
+        responseSpecification = new ResponseSpecBuilder().log(LogDetail.ALL).build();
+    }
 
     Faker faker = new Faker();
     private final String password = faker.music().instrument();
     private final String EMAIL = "eve.holt@reqres.in";
 
+    private final ReqResController reqResController = new ReqResController();
 
     @Test
     @DisplayName("Creation of a new user")
     void creationOfANewUser() {
-        var creationResponse = reqresClient()
-                                   .log().everything()
-                                   .body("{\n"
-                                         + "    \"email\": \"" + EMAIL + "\",\n"
-                                         + "    \"password\": \"" + password + "\"\n"
-                                         + "}")
-                                   .contentType(ContentType.JSON)
-                                   .when()
-                                   .post("/register");
-        creationResponse.prettyPrint();
+        var targetUser = UserDto.builder()
+                                .email(EMAIL)
+                                .password(password)
+                                .build();
+        var createUserResponse = reqResController.createNewUser(targetUser);
+        createUserResponse.prettyPrint();
 
-        creationResponse.then()
-                        .assertThat()
-                        .statusCode(200);
-        var userId = creationResponse.jsonPath().get("id").toString();
+        Assertions.assertEquals(200, createUserResponse.statusCode());
 
-
-        var getByIdResponse = reqresClient()
-            .when()
-            .get("/users/{id}", userId);
+        var userId = createUserResponse.as(UserDto.class).getId();
+        var getByIdResponse = reqResController.getUserById(userId);
         getByIdResponse.prettyPrint();
-        getByIdResponse.then()
-            .assertThat()
-            .statusCode(200);
 
-        var abc = getByIdResponse.jsonPath().get("data");
+        Assertions.assertEquals(200, getByIdResponse.statusCode());
         Assertions.assertTrue(getByIdResponse.jsonPath().get("data").toString().contains(EMAIL));
-    }
-
-    private RequestSpecification reqresClient() {
-        return given()
-                   .baseUri("https://reqres.in")
-                   .basePath("/api");
     }
 }
