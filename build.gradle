@@ -1,6 +1,10 @@
 plugins {
     id 'java'
     id "io.freefair.lombok" version "6.5.1"
+
+    id 'io.qameta.allure' version '2.9.5'
+    id 'io.qameta.allure-adapter' version '2.9.5'
+    id "io.qameta.allure-report" version '2.9.5'
 }
 
 group 'in.reqres'
@@ -10,19 +14,31 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    allureArtifact = 'io.qameta.allure:allure'
+
+    allureVer = '2.15.0'
+}
+
 dependencies {
 
 
     implementation(
             'io.rest-assured:rest-assured:4.4.0',
-            'com.fasterxml.jackson.core:jackson-databind:2.14.0'
+            'com.fasterxml.jackson.core:jackson-databind:2.14.0',
+
+            "$allureArtifact-java-commons:$allureVer",
+            "$allureArtifact-junit5:$allureVer",
+            "$allureArtifact-rest-assured:$allureVer"
     )
     testImplementation(
             'org.junit.jupiter:junit-jupiter-api:5.8.1',
             'com.github.javafaker:javafaker:1.0.2'
+
     )
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
 }
+
 
 test {
     useJUnitPlatform()
