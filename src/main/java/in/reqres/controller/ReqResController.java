@@ -1,5 +1,6 @@
 package in.reqres.controller;
 
+import in.reqres.model.LoginDto;
 import in.reqres.model.UserDto;
 import io.qameta.allure.Step;
 import io.restassured.http.ContentType;
@@ -21,6 +22,19 @@ public class ReqResController {
     public Response getUserById(int userId) {
         return reqresApiClient()
                    .get("/users/{id}", userId);
+    }
+
+    @Step("Delete user")
+    public Response deleteUser(int userId) {
+        return reqresApiClient()
+                   .delete("/users/{id}", userId);
+    }
+
+    @Step("User login")
+    public Response login(LoginDto loginDto) {
+        return reqresApiClient()
+                   .body(loginDto)
+                   .post("/api/login");
     }
 
     private RequestSpecification reqresApiClient() {
